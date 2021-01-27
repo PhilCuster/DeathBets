@@ -1,0 +1,6 @@
+## Interface: 90002
+## Title: DeathBets
+## Author: Weehee
+## Version: 0.1
+embeds.xml
+DeathBets.lua
