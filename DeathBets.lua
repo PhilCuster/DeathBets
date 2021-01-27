@@ -111,7 +111,7 @@ function DeathBets:EncounterStart(event, ...)
     -- TODO: Listen for deaths.
     DeathBets:CatalogGroup()
     DeathBets:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED", "CombatLogHandler")
-
+    DeathBets:RegisterEvent("ENCOUNTER_END", "HandleEncounterEnd")
 end
 
 -- [[ -----------------------------------------------------------
@@ -177,9 +177,9 @@ function DeathBets:CombatLogHandler(event, ...)
     end
 end
 
---[[ ---------------------------------------------------------------------------
-	 Handle death
------------------------------------------------------------------------------ ]]
+-- [[ -----------------------------------------------------------
+--  Handle deaths.
+-------------------------------------------------------------- ]]
 function DeathBets:HandleDeathEvent(dstGUID)
 
 	deathsSoFar = self.deathLogs[dstGUID]
@@ -198,6 +198,9 @@ function DeathBets:TotalDeaths()
     return total
 end
 
+-- [[ -----------------------------------------------------------
+--  Handle end of encounter.
+-------------------------------------------------------------- ]]
 function DeathBets:HandleEncounterEnd(event, ...)
     local encounterID, encounterName, difficultyID, groupSize, success = ...
 
@@ -212,7 +215,49 @@ function DeathBets:HandleEncounterEnd(event, ...)
         winOrLose = "Better luck next time. "
     end
 
-    SendChatMessage("Fight ended against " .. encounterName .. ". " .. winOrLose .. totalDeaths .. " deaths occured!"  , DeathBets:GetTargetChat())
+    SendChatMessage("Fight ended against " .. encounterName .. ". " .. winOrLose .. totalDeaths .. " deaths occured! " .. DeathBets:DetermineWinner(totalDeaths)  , DeathBets:GetTargetChat())
+
+    self.processing = false
+    DeathBets:ResetValues()
+end
+
+-- [[ -----------------------------------------------------------
+--  Return a string reporting who the winner is.
+-------------------------------------------------------------- ]]
+function DeathBets:DetermineWinner(answer)
+    local winners = {}
+    local closest = {}
+    local result = ""
+    local closest = 100000
+    -- If anyone guessed exactly right, they win.
+    for player, guess in pairs(self.guesses) do
+        if guess == answer then
+            winners[#winners+1] = player
+        else
+            local accuracy = math.abs(guess - answer)
+            if accuracy < closest then
+                closest = {}
+                table.insert(closest, player)
+            elseif accuracy == closest then
+                table.insert(closest, player)
+            end
+        end
+    end
+    if #winners > 0 then
+        result = "Winners: "
+        for _, winner in ipairs(winners) do:
+            result = result .. winner .. ", "
+        end
+        result = result:sub(1, -3)
+        return result
+    else
+        result = "Closest guess: "
+        for _, player in ipairs(closest) do:
+            result = result .. player .. ", "
+        end
+        result = result:sub(1, -3)
+        return result
+    end
 end
 
 -- [[ -----------------------------------------------------------
