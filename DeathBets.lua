@@ -245,14 +245,14 @@ function DeathBets:DetermineWinner(answer)
     end
     if #winners > 0 then
         result = "Winners: "
-        for _, winner in ipairs(winners) do:
+        for _, winner in ipairs(winners) do
             result = result .. winner .. ", "
         end
         result = result:sub(1, -3)
         return result
     else
         result = "Closest guess: "
-        for _, player in ipairs(closest) do:
+        for _, player in ipairs(closest) do
             result = result .. player .. ", "
         end
         result = result:sub(1, -3)
